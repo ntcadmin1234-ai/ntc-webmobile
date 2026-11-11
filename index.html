@@ -155,6 +155,7 @@
     ];
 
     let activeProfile = null;
+    let isAdminLogin = false;
 
     function switchView(viewId) {
       document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
@@ -163,6 +164,7 @@
     }
 
     function goToProfileSelect() {
+      isAdminLogin = false;
       const normalUsers = profiles.filter(p => p.type !== 'admin');
       const container = document.getElementById('profileListContainer');
       container.innerHTML = normalUsers.map(p => {
@@ -181,6 +183,7 @@
     }
 
     function promptAdminLogin() {
+      isAdminLogin = true;
       activeProfile = profiles.find(p => p.type === 'admin');
       document.getElementById('modalProfileName').textContent = activeProfile.name;
       document.getElementById('birthYearInput').value = '';
@@ -190,6 +193,7 @@
     }
 
     function openModal(index) {
+      isAdminLogin = false;
       activeProfile = profiles[index];
       document.getElementById('modalProfileName').textContent = activeProfile.name;
       document.getElementById('birthYearInput').value = '';
@@ -206,12 +210,18 @@
     function verifyBirthYear() {
       const val = document.getElementById('birthYearInput').value.trim();
       const err = document.getElementById('modalError');
-      if (activeProfile && val === activeProfile.birthYear) {
+      
+      let targetP = activeProfile;
+      if (isAdminLogin) {
+        targetP = profiles.find(p => p.type === 'admin');
+      }
+
+      if (targetP && val === targetP.birthYear) {
         closeModal();
-        document.getElementById('profileNameDisplay').textContent = activeProfile.name;
-        document.getElementById('profileRoleDisplay').textContent = activeProfile.roleName;
-        document.getElementById('profileDeptDisplay').textContent = activeProfile.department;
-        document.getElementById('profileAvatarText').textContent = activeProfile.name.charAt(0);
+        document.getElementById('profileNameDisplay').textContent = targetP.name;
+        document.getElementById('profileRoleDisplay').textContent = targetP.roleName;
+        document.getElementById('profileDeptDisplay').textContent = targetP.department;
+        document.getElementById('profileAvatarText').textContent = targetP.name.charAt(0);
         switchView('appView');
         switchMainTab('pageHome', document.querySelector('.bottom-nav .nav-item'));
       } else {
@@ -235,6 +245,7 @@
 
     function handleLogout() {
       activeProfile = null;
+      isAdminLogin = false;
       switchView('loginView');
     }
 
