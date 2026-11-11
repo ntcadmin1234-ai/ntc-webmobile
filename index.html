@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ระบบนิเทศการจัดการเรียนรู้</title>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --blue: #3478ee;
+      --purple: #7c3aed;
+      --line-green: #06C755;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Kanit', sans-serif;
+      color: var(--text);
+      background: #f8fafc;
+      padding-bottom: 90px;
+    }
+    button, input { font: inherit; }
+    .view-section { display: none; }
+    .view-section.active { display: block; }
+
+    /* Login */
+    .login-container { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+    .login-card { width: 100%; max-width: 420px; padding: 40px 32px; border: 1px solid var(--border); border-radius: 24px; background: #fff; box-shadow: 0 20px 40px rgba(30,64,175,.08); text-align: center; }
+    .login-logo { width: 70px; height: 70px; margin: 0 auto 20px; display: grid; place-items: center; border-radius: 20px; color: #fff; background: linear-gradient(135deg, #0ea5e9, #4f46e5); font-size: 32px; }
+    .login-title { margin: 0 0 8px; font-size: 24px; font-weight: 600; }
+    .login-subtitle { margin: 0 0 24px; color: var(--muted); font-size: 14px; }
+    .line-login-btn { width: 100%; padding: 14px; border: none; border-radius: 14px; color: #fff; background-color: var(--line-green); font-size: 16px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
+    .admin-link-box { margin-top: 20px; font-size: 13px; color: var(--muted); }
+    .admin-link-box a { color: var(--purple); text-decoration: none; font-weight: 500; cursor: pointer; }
+    .admin-link-box a:hover { text-decoration: underline; }
+
+    /* Profile Selector */
+    .profile-container { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+    .profile-card { width: 100%; max-width: 500px; padding: 36px 32px; border: 1px solid var(--border); border-radius: 24px; background: #fff; box-shadow: 0 20px 40px rgba(30,64,175,.08); }
+    .profile-list { margin-top: 20px; display: flex; flex-direction: column; gap: 12px; max-height: 320px; overflow-y: auto; }
+    .profile-item { padding: 14px 18px; border: 1px solid var(--border); border-radius: 14px; background: #f8fafc; display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
+    .profile-item:hover { border-color: var(--blue); background: #eff6ff; }
+    .profile-info h4 { margin: 0 0 4px; font-size: 16px; font-weight: 500; }
+    .profile-info p { margin: 0; color: var(--muted); font-size: 13px; }
+    .profile-badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; background: #dbeafe; color: #1d4ed8; }
+
+    /* Modal */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.6); backdrop-filter: blur(4px); align-items: center; justify-content: center; z-index: 200; padding: 20px; }
+    .modal-overlay.show { display: flex; }
+    .modal-card { width: 100%; max-width: 380px; padding: 30px; background: #fff; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); text-align: center; }
+    .modal-input { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 11px; font-size: 18px; text-align: center; outline: none; margin-bottom: 16px; }
+    .modal-error { color: #dc2626; font-size: 13px; margin-bottom: 14px; display: none; }
+    .modal-actions { display: flex; gap: 10px; }
+    .modal-btn { flex: 1; padding: 12px; border-radius: 11px; border: none; cursor: pointer; font-size: 15px; font-weight: 500; }
+    .modal-btn.cancel { background: #f1f5f9; color: var(--muted); }
+    .modal-btn.confirm { background: linear-gradient(135deg, #0ea5e9, #4f46e5); color: #fff; }
+
+    /* App Layout */
+    .page-content { width: min(100% - 32px, 980px); margin: 38px auto 60px; display: none; }
+    .page-content.active { display: block; }
+    .profile-page-card { background: #fff; padding: 32px; border-radius: 20px; border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.05); text-align: center; max-width: 500px; margin: 0 auto; }
+    .profile-avatar { width: 80px; height: 80px; background: linear-gradient(135deg, #0ea5e9, #4f46e5); color: #fff; font-size: 32px; display: grid; place-items: center; border-radius: 50%; margin: 0 auto 16px; font-weight: 600; }
+
+    /* Bottom Nav */
+    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: 75px; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center; padding: 0 10px; z-index: 99; }
+    .nav-item { background: none; border: none; display: flex; flex-direction: column; align-items: center; color: var(--muted); cursor: pointer; font-size: 13px; gap: 4px; flex: 1; }
+    .nav-item svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .nav-item.active { color: var(--purple); font-weight: 500; }
+    .nav-item.active svg { stroke: var(--purple); }
+  </style>
+</head>
+<body>
+
+  <!-- VIEW 1: Login -->
+  <div id="loginView" class="view-section active">
+    <div class="login-container">
+      <div class="login-card">
+        <div class="login-logo">✓</div>
+        <h2 class="login-title">ระบบนิเทศการจัดการเรียนรู้</h2>
+        <p class="login-subtitle">เข้าสู่ระบบด้วยบัญชี LINE ของท่าน</p>
+        <button class="line-login-btn" type="button" onclick="goToProfileSelect()">เข้าสู่ระบบด้วย LINE</button>
+        <div class="admin-link-box">
+          สำหรับผู้ดูแลระบบ? <a onclick="promptAdminLogin()">เข้าสู่ระบบ Admin (รหัส 2537)</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW 2: Profile Selection -->
+  <div id="profileView" class="view-section">
+    <div class="profile-container">
+      <div class="profile-card">
+        <h2>เลือกโปรไฟล์ผู้ใช้งาน</h2>
+        <p style="color: var(--muted); font-size: 14px;">โปรดเลือกชื่อโปรไฟล์ของท่านเพื่อยืนยันตัวตน</p>
+        <div class="profile-list" id="profileListContainer"></div>
+        <button style="width: 100%; margin-top: 20px; padding: 12px; border: 1px solid var(--border); border-radius: 12px; background: #fff; cursor: pointer;" onclick="goBackToLogin()">← กลับไปหน้าล็อกอิน</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: พ.ศ. เกิด -->
+  <div id="pinModal" class="modal-overlay">
+    <div class="modal-card">
+      <h3 id="modalProfileName" style="margin-top:0;">ยืนยันตัวตน</h3>
+      <p style="color: var(--muted); font-size: 14px; margin-bottom: 20px;">กรุณากรอกปี พ.ศ. เกิด (4 หลัก)</p>
+      <input type="password" id="birthYearInput" class="modal-input" maxlength="4" placeholder="เช่น 2537">
+      <div id="modalError" class="modal-error">ปี พ.ศ. เกิดไม่ถูกต้อง</div>
+      <div class="modal-actions">
+        <button class="modal-btn cancel" type="button" onclick="closeModal()">ยกเลิก</button>
+        <button class="modal-btn confirm" type="button" onclick="verifyBirthYear()">ยืนยัน</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW 3: Main App -->
+  <div id="appView" class="view-section">
+    <div id="pageHome" class="page-content active">
+      <div style="text-align: center; padding: 80px 20px;">
+        <h1 style="font-size: 26px; margin-bottom: 5px;">ยินดีต้อนรับสู่ระบบ</h1>
+        <p style="color: var(--muted);">หน้าแรก (หน้าเปล่า)</p>
+      </div>
+    </div>
+
+    <div id="pageProfile" class="page-content">
+      <div class="profile-page-card">
+        <div class="profile-avatar" id="profileAvatarText">A</div>
+        <h2 id="profileNameDisplay" style="margin: 0 0 4px; font-size: 20px;">ชื่อผู้ใช้งาน</h2>
+        <p id="profileRoleDisplay" style="color: var(--blue); font-weight: 500; margin: 0 0 8px; font-size: 14px;"></p>
+        <p id="profileDeptDisplay" style="color: var(--muted); margin: 0 0 24px; font-size: 14px;"></p>
+        <button style="width: 100%; padding: 12px; border: none; border-radius: 12px; background: #fee2e2; color: #dc2626; font-weight: 500; cursor: pointer;" onclick="handleLogout()">ออกจากระบบ</button>
+      </div>
+    </div>
+
+    <nav class="bottom-nav">
+      <button class="nav-item active" type="button" onclick="switchMainTab('pageHome', this)">
+        <svg viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span>Home</span>
+      </button>
+      <button class="nav-item" type="button" onclick="switchMainTab('pageProfile', this)">
+        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>Profile</span>
+      </button>
+    </nav>
+  </div>
+
+  <script>
+    const profiles = [
+      { name: "Admin ระบบนิเทศ", roleName: "ผู้ดูแลระบบ (Admin)", department: "ศูนย์เทคโนโลยีสารสนเทศ", birthYear: "2537", type: "admin" },
+      { name: "ดร. สมชาย ใจดี", roleName: "ผู้นิเทศ", department: "ฝ่ายวิชาการ", birthYear: "2535", type: "supervisor" },
+      { name: "อ. วิชัย มุ่งเรียน", roleName: "ครูผู้รับการนิเทศ", department: "สาขาวิชาไอที", birthYear: "2545", type: "teacher" }
+    ];
+
+    let activeProfile = null;
+
+    function switchView(viewId) {
+      document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+      const target = document.getElementById(viewId);
+      if (target) target.classList.add('active');
+    }
+
+    function goToProfileSelect() {
+      const normalUsers = profiles.filter(p => p.type !== 'admin');
+      const container = document.getElementById('profileListContainer');
+      container.innerHTML = normalUsers.map(p => {
+        const idx = profiles.findIndex(item => item.name === p.name);
+        return `
+          <div class="profile-item" onclick="openModal(${idx})">
+            <div class="profile-info">
+              <h4>${p.name}</h4>
+              <p>${p.department}</p>
+            </div>
+            <span class="profile-badge">${p.roleName}</span>
+          </div>
+        `;
+      }).join('');
+      switchView('profileView');
+    }
+
+    function promptAdminLogin() {
+      activeProfile = profiles.find(p => p.type === 'admin');
+      document.getElementById('modalProfileName').textContent = activeProfile.name;
+      document.getElementById('birthYearInput').value = '';
+      document.getElementById('modalError').style.display = 'none';
+      document.getElementById('pinModal').classList.add('show');
+      setTimeout(() => document.getElementById('birthYearInput').focus(), 100);
+    }
+
+    function openModal(index) {
+      activeProfile = profiles[index];
+      document.getElementById('modalProfileName').textContent = activeProfile.name;
+      document.getElementById('birthYearInput').value = '';
+      document.getElementById('modalError').style.display = 'none';
+      document.getElementById('pinModal').classList.add('show');
+      setTimeout(() => document.getElementById('birthYearInput').focus(), 100);
+    }
+
+    function closeModal() {
+      document.getElementById('pinModal').classList.remove('show');
+      activeProfile = null;
+    }
+
+    function verifyBirthYear() {
+      const val = document.getElementById('birthYearInput').value.trim();
+      const err = document.getElementById('modalError');
+      if (activeProfile && val === activeProfile.birthYear) {
+        closeModal();
+        document.getElementById('profileNameDisplay').textContent = activeProfile.name;
+        document.getElementById('profileRoleDisplay').textContent = activeProfile.roleName;
+        document.getElementById('profileDeptDisplay').textContent = activeProfile.department;
+        document.getElementById('profileAvatarText').textContent = activeProfile.name.charAt(0);
+        switchView('appView');
+        switchMainTab('pageHome', document.querySelector('.bottom-nav .nav-item'));
+      } else {
+        err.style.display = 'block';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const input = document.getElementById('birthYearInput');
+      if (input) {
+        input.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') verifyBirthYear();
+        });
+      }
+    });
+
+    function goBackToLogin() {
+      closeModal();
+      switchView('loginView');
+    }
+
+    function handleLogout() {
+      activeProfile = null;
+      switchView('loginView');
+    }
+
+    function switchMainTab(pageId, btn) {
+      document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
+      const page = document.getElementById(pageId);
+      if (page) page.classList.add('active');
+
+      document.querySelectorAll('.bottom-nav .nav-item').forEach(i => i.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+    }
+  </script>
+</body>
+</html>
